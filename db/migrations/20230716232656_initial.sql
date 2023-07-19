@@ -6,5 +6,7 @@ CREATE TABLE IF NOT EXISTS items (
   alch_high    INTEGER,
   buy_limit    INTEGER,
   value        INTEGER,
-  examine_text TEXT
+  icon         TEXT,
+  examine_text TEXT,
+  last_updated INTEGER
 )

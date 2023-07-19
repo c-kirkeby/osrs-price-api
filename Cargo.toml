@@ -1,5 +1,5 @@
 [package]
-name = "rust-rs-price-api"
+name = "osrs-price-api"
 version = "0.1.0"
 edition = "2021"
 
@@ -15,3 +15,4 @@ futures = "0.3.28"
 serde_json = "1.0.103"
 serde = "1.0.171"
 anyhow = "1.0.72"
+chrono = "0.4.26"

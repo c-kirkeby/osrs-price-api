@@ -1,3 +1,4 @@
+// use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
@@ -9,5 +10,7 @@ pub struct Item {
     alch_high: u32,
     buy_limit: u32,
     value: u32,
+    icon: String,
     examine_text: String,
+    last_updated: u32,
 }

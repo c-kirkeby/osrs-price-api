@@ -15,7 +15,9 @@ pub async fn list_items(Extension(pool): Extension<sqlx::SqlitePool>) -> impl In
              , alch_high
              , buy_limit
              , value
+             , icon
              , examine_text 
+             , last_updated
           FROM items"#;
 
     let result = sqlx::query_as::<_, item::Item>(query)
@@ -24,16 +26,20 @@ pub async fn list_items(Extension(pool): Extension<sqlx::SqlitePool>) -> impl In
 
     match result {
         Ok(items) => (StatusCode::OK, Json(json!({ "data": items }))),
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "data": null })),
-        ),
+        Err(error) => {
+            println!("Error: {}", error);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({ "data": null })),
+            );
+        }
     }
 }
 
 pub async fn show_item(
     Path(id): Path<u64>,
     Extension(pool): Extension<sqlx::SqlitePool>,
+    Extension(_client): Extension<reqwest::Client>,
 ) -> impl IntoResponse {
     let query = r#"
         SELECT id
@@ -42,6 +48,7 @@ pub async fn show_item(
              , alch_high
              , buy_limit
              , value
+             , icon
              , examine_text 
           FROM items 
          WHERE id = $1"#;
@@ -50,6 +57,8 @@ pub async fn show_item(
         .bind(id as i64)
         .fetch_one(&pool)
         .await;
+
+    // let upstream_item = client.get("https://prices.runescape.wiki/api/v1/osrs");
 
     match result {
         Ok(item) => (StatusCode::OK, Json(json!({ "data": item }))),
