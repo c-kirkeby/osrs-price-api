@@ -12,10 +12,12 @@ use std::{env, error};
 async fn main() -> Result<(), Box<dyn error::Error>> {
     println!("[App] Running server");
 
-    let pool = SqlitePool::connect(&env::var("DATABASE_URL")?).await?;
+    let db = &env::var("DATABASE_URL").unwrap_or("sqlite:local.db".to_string());
+
+    let pool = SqlitePool::connect(db).await?;
     println!("[App] Migrating");
 
-    sqlx::migrate!("db/migrations").run(&pool).await?;
+    sqlx::migrate!().run(&pool).await?;
 
     println!("[App] Migration complete");
 
@@ -24,10 +26,11 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         .build()
         .expect("Could not create client");
 
-    println!("[App] Mapping");
     // @todo change this to run on a schedule or CLI
+    println!("[App] Syncing");
     utils::sync::sync_mapping(&pool, &client).await?;
-    println!("[App] Mapping complete");
+    utils::sync::sync_prices(&pool, &client).await?;
+    println!("[App] Syncing complete");
 
     let app = Router::new()
         .route("/health", get(|| async { "Hello, world!" }))
