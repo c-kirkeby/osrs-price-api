@@ -2,19 +2,22 @@ mod controllers;
 mod models;
 mod utils;
 
-use anyhow::Result;
+use anyhow;
 use axum::{extract::Extension, routing::get, Router};
+use dotenvy;
 use reqwest::Client;
-use sqlx::sqlite::SqlitePool;
+use sqlx;
 use std::{env, error};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn error::Error>> {
+async fn main() -> anyhow::Result<(), Box<dyn error::Error>> {
     println!("[App] Running server");
+
+    dotenvy::dotenv().ok();
 
     let db = &env::var("DATABASE_URL").unwrap_or("sqlite:local.db".to_string());
 
-    let pool = SqlitePool::connect(db).await?;
+    let pool = sqlx::sqlite::SqlitePool::connect(db).await?;
     println!("[App] Migrating");
 
     sqlx::migrate!().run(&pool).await?;
