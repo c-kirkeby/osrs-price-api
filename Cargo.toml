@@ -17,3 +17,5 @@ serde = "1.0.171"
 anyhow = "1.0.72"
 chrono = "0.4.26"
 dotenvy = "0.15.7"
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }

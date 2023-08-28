@@ -8,21 +8,28 @@ use dotenvy;
 use reqwest::Client;
 use sqlx;
 use std::{env, error};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<(), Box<dyn error::Error>> {
-    println!("[App] Running server");
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "osrs_price_api=debug".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+    tracing::debug!("Running server");
 
     dotenvy::dotenv().ok();
 
     let db = &env::var("DATABASE_URL").unwrap_or("sqlite:local.db".to_string());
 
     let pool = sqlx::sqlite::SqlitePool::connect(db).await?;
-    println!("[App] Migrating");
+    tracing::debug!("Migrating");
 
     sqlx::migrate!().run(&pool).await?;
 
-    println!("[App] Migration complete");
+    tracing::debug!("Migration complete");
 
     let client = Client::builder()
         .user_agent(&env::var("USER_AGENT")?)
@@ -30,10 +37,10 @@ async fn main() -> anyhow::Result<(), Box<dyn error::Error>> {
         .expect("Could not create client");
 
     // @todo change this to run on a schedule or CLI
-    println!("[App] Syncing");
+    tracing::debug!("Syncing");
     utils::sync::sync_mapping(&pool, &client).await?;
     utils::sync::sync_prices(&pool, &client).await?;
-    println!("[App] Syncing complete");
+    tracing::debug!("Syncing complete");
 
     let app = Router::new()
         .route("/health", get(|| async { "Hello, world!" }))
@@ -42,7 +49,7 @@ async fn main() -> anyhow::Result<(), Box<dyn error::Error>> {
         .layer(Extension(client))
         .layer(Extension(pool));
 
-    println!("[App] Listening on 0.0.0.0:3400");
+    tracing::debug!("Listening on 0.0.0.0:3400");
 
     axum::Server::bind(&"0.0.0.0:3400".parse().unwrap())
         .serve(app.into_make_service())
