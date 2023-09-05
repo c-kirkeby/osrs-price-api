@@ -2,22 +2,41 @@
 
 This is intended to be a wrapper API around the [RuneScape:Real-time Prices](https://oldschool.runescape.wiki/w/RuneScape:Real-time_Prices) API. The API should extend the upstream API with some caching, ability to add favourites, and defining recipes.
 
+## Get started
+
+1. Clone the project
+```sh
+git@github.com:c-kirkeby/osrs-price-api.git
+```
+2. Install
+```sh
+cargo install
+```
+3. Copy and modify the .env file:
+```sh
+cp .env.example .env`
+```
+
+**Note:** the upstream API kindly requests that you make yourself contactable when using their API, so fill in `<discord/github username/email>` with appropriate contact details.
+
 ## Run
 
 ```sh
-USER_AGENT="osrs-price-api - <discord/github username/email>" cargo run
+cargo run
 ```
+
+By default it's set to run on port 3400, but this can be easily changed by modifying the `PORT` environment variable.
 
 ## Alternative run with cargo watch
 
 ```sh
-USER_AGENT="osrs-price-api - <discord/github username/email>" cargo watch -x run
+cargo watch -x run
 ```
 
 ## Build
 
 ```sh
-USER_AGENT="osrs-price-api - <discord/github username/email>" cargo build
+cargo build
 ```
 
-**Note:** the upstream API kindly requests that you make yourself contactable when using their API, so fill in `<discord/github username/email>` with appropriate contact details.
+
