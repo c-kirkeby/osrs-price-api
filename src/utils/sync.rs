@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqlitePool;
 use std::collections::HashMap;
@@ -29,10 +30,7 @@ struct Data<T> {
     data: HashMap<String, T>,
 }
 
-pub async fn sync_mapping(
-    pool: &SqlitePool,
-    client: &reqwest::Client,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn sync_mapping(pool: &SqlitePool, client: &reqwest::Client) -> Result<()> {
     let upstream_response = client
         .get("https://prices.runescape.wiki/api/v1/osrs/mapping")
         .send()
@@ -87,10 +85,7 @@ pub async fn sync_mapping(
     Ok(())
 }
 
-pub async fn sync_prices(
-    pool: &SqlitePool,
-    client: &reqwest::Client,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn sync_prices(pool: &SqlitePool, client: &reqwest::Client) -> Result<()> {
     let upstream_response = client
         .get("https://prices.runescape.wiki/api/v1/osrs/latest")
         .send()

@@ -1,5 +1,6 @@
 mod controllers;
 mod models;
+mod services;
 mod utils;
 
 use anyhow;
@@ -7,11 +8,11 @@ use axum::{extract::Extension, routing::get, Router};
 use dotenvy;
 use reqwest::Client;
 use sqlx;
-use std::{env, error};
+use std::env;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
-async fn main() -> anyhow::Result<(), Box<dyn error::Error>> {
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "osrs_price_api=debug".into()),
@@ -46,8 +47,8 @@ async fn main() -> anyhow::Result<(), Box<dyn error::Error>> {
         .route("/health", get(|| async { "Hello, world!" }))
         .route("/items", get(controllers::item::list_items))
         .route("/items/:id", get(controllers::item::show_item))
-        .layer(Extension(client))
-        .layer(Extension(pool));
+        .with_state(pool)
+        .layer(Extension(client));
 
     tracing::debug!("Listening on 0.0.0.0:3400");
 

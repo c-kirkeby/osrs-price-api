@@ -1,28 +1,14 @@
-use crate::models::item;
+use crate::services;
 use axum::{
-    extract::{Extension, Path},
+    extract::{Extension, Path, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
 use serde_json::json;
 
-pub async fn list_items(Extension(pool): Extension<sqlx::SqlitePool>) -> impl IntoResponse {
-    let query = r#"
-        SELECT id
-             , is_members
-             , alch_low
-             , alch_high
-             , buy_limit
-             , value
-             , icon
-             , examine_text 
-             , last_updated
-          FROM items"#;
-
-    let result = sqlx::query_as::<_, item::Item>(query)
-        .fetch_all(&pool)
-        .await;
+pub async fn list_items(State(pool): State<sqlx::SqlitePool>) -> impl IntoResponse {
+    let result = services::item::get_items(&pool).await;
 
     match result {
         Ok(items) => (StatusCode::OK, Json(json!({ "data": items }))),
@@ -37,28 +23,11 @@ pub async fn list_items(Extension(pool): Extension<sqlx::SqlitePool>) -> impl In
 }
 
 pub async fn show_item(
-    Path(id): Path<u64>,
-    Extension(pool): Extension<sqlx::SqlitePool>,
+    Path(id): Path<u32>,
+    State(pool): State<sqlx::SqlitePool>,
     Extension(_client): Extension<reqwest::Client>,
 ) -> impl IntoResponse {
-    let query = r#"
-        SELECT id
-             , is_members
-             , alch_low
-             , alch_high
-             , buy_limit
-             , value
-             , icon
-             , examine_text 
-          FROM items 
-         WHERE id = $1"#;
-
-    let result = sqlx::query_as::<_, item::Item>(query)
-        .bind(id as i64)
-        .fetch_one(&pool)
-        .await;
-
-    // let upstream_item = client.get("https://prices.runescape.wiki/api/v1/osrs");
+    let result = services::item::get_item(&pool, id).await;
 
     match result {
         Ok(item) => (StatusCode::OK, Json(json!({ "data": item }))),
